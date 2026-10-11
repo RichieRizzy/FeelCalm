@@ -1,0 +1,868 @@
+<title>FeelCalm</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* Layout concept: one phone-width column (max 430px), centred on larger screens. Black ink panels carry live data, one blue marks everything that moves. */
+:root{
+  --bg:#FFFFFF;--fg:#0B0B0C;--muted:#6B6B72;--card:#F4F4F5;--line:#E7E7EA;
+  --accent:#2347FF;--on-accent:#FFFFFF;--accent-soft:rgba(35,71,255,.10);
+  --ink:#0B0B0C;--ink-fg:#FFFFFF;--ink-muted:#A1A1A8;--ink-card:#1A1A1D;--seg-off:#2A2A2E;
+  --btn:#0B0B0C;--btn-fg:#FFFFFF;--logo:#0B0B0C;--off:#CFCFD4;
+  --map:#ECEDF0;--map-block:#E1E3E8;--map-road:#FFFFFF;--shadow:rgba(11,11,12,.22);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0B0B0C;--fg:#F4F4F5;--muted:#A1A1A8;--card:#17171A;--line:#26262B;
+  --accent:#6C88FF;--on-accent:#0B0B0C;--accent-soft:rgba(108,136,255,.16);
+  --ink:#1D1D21;--ink-fg:#FFFFFF;--ink-muted:#A1A1A8;--ink-card:#2A2A2F;--seg-off:#3A3A40;
+  --btn:#F4F4F5;--btn-fg:#0B0B0C;--logo:#26262B;--off:#3A3A40;
+  --map:#18181B;--map-block:#202024;--map-road:#2C2C32;--shadow:rgba(0,0,0,.5);color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0B0B0C;--fg:#F4F4F5;--muted:#A1A1A8;--card:#17171A;--line:#26262B;
+  --accent:#6C88FF;--on-accent:#0B0B0C;--accent-soft:rgba(108,136,255,.16);
+  --ink:#1D1D21;--ink-fg:#FFFFFF;--ink-muted:#A1A1A8;--ink-card:#2A2A2F;--seg-off:#3A3A40;
+  --btn:#F4F4F5;--btn-fg:#0B0B0C;--logo:#26262B;--off:#3A3A40;
+  --map:#18181B;--map-block:#202024;--map-road:#2C2C32;--shadow:rgba(0,0,0,.5);color-scheme:dark}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:'Manrope',system-ui,-apple-system,'Segoe UI',sans-serif;font-size:14px;-webkit-text-size-adjust:100%}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none;padding:0;text-align:inherit}
+input{cursor:text}
+input::placeholder{color:var(--muted);opacity:.8}
+a{color:inherit;text-decoration:none}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+#app{max-width:430px;margin:0 auto;height:100%;position:relative;display:flex;flex-direction:column;overflow:hidden}
+.i{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.col{display:flex;flex-direction:column}.row{display:flex;align-items:center}
+.g4{gap:4px}.g6{gap:6px}.g8{gap:8px}.g12{gap:12px}.g16{gap:16px}.g20{gap:20px}.g24{gap:24px}
+.f1{flex:1;min-width:0}.nos{flex-shrink:0}.wrap{flex-wrap:wrap}.between{justify-content:space-between}.center{justify-content:center;align-items:center;text-align:center}
+.trunc{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.muted{color:var(--muted)}.small{font-size:12px;line-height:17px}.tiny{font-size:11px}
+.b{font-weight:700}.xb{font-weight:800}
+.h1{font-size:26px;font-weight:800;line-height:32px}.h2{font-size:17px;font-weight:800}.h3{font-size:15px;font-weight:800}
+.num{font-variant-numeric:tabular-nums}
+.scroll{flex:1;min-height:0;overflow-y:auto;padding:24px;display:flex;flex-direction:column;gap:24px}
+.scroll.nav{padding-bottom:112px}
+.scroll>*{flex-shrink:0}
+.brand{font-weight:800;letter-spacing:-.3px}.brand b{color:var(--accent)}
+.card{background:var(--card);border-radius:22px;padding:16px 18px}
+.outline{border:1px solid var(--line);border-radius:24px;padding:18px}
+.dashed{border:1.5px dashed var(--off);border-radius:24px;padding:24px 18px;text-align:center}
+.ink{background:var(--ink);color:var(--ink-fg);border-radius:28px;padding:20px}
+.ink .muted,.ink .mut{color:var(--ink-muted)}
+.inp{width:100%;height:56px;border-radius:28px;border:1px solid var(--line);background:var(--card);padding:0 22px;font-size:14px;font-weight:500;outline:0;color:var(--fg)}
+.inp:focus{border-color:var(--accent)}
+.lab{font-size:12px;font-weight:600;color:var(--muted);padding-left:8px}
+.btn{height:56px;border-radius:28px;font-weight:700;font-size:15px;padding:0 22px;display:flex;align-items:center;justify-content:center;gap:10px;width:100%;text-align:center}
+.btn.sm{height:44px;border-radius:22px;font-size:13px;width:auto;padding:0 18px}
+.btn.primary{background:var(--accent);color:var(--on-accent)}
+.btn.dark{background:var(--btn);color:var(--btn-fg)}
+.btn.soft{background:var(--card);color:var(--fg)}
+.btn.onink{background:var(--ink-card);color:var(--ink-fg)}
+.btn.white{background:#fff;color:#0B0B0C}
+.btn[disabled]{opacity:.5;cursor:default}
+.circ{width:44px;height:44px;border-radius:22px;display:flex;align-items:center;justify-content:center;background:var(--card);flex-shrink:0}
+.circ.acc{background:var(--accent);color:var(--on-accent)}.circ.dk{background:var(--btn);color:var(--btn-fg)}.circ.wh{background:#fff;color:#0B0B0C}
+.circ.off{background:var(--off);color:#fff;pointer-events:none}
+.badge{background:var(--accent-soft);color:var(--accent);font-size:12px;font-weight:700;border-radius:14px;padding:6px 12px;white-space:nowrap}
+.badge.solid{background:var(--accent);color:var(--on-accent)}
+.opt{border-radius:20px;padding:14px 10px;background:var(--card);display:flex;flex-direction:column;gap:4px;text-align:left}
+.opt.on{background:var(--btn);color:var(--btn-fg)}
+.opt .s{font-size:11px;font-weight:500;opacity:.7}.opt .p{font-size:13px;font-weight:800;margin-top:4px}
+.opt .t{font-size:13px;font-weight:800}
+.pill{height:44px;border-radius:22px;padding:0 18px;background:var(--card);font-size:13px;font-weight:700;display:flex;align-items:center}
+.pill.on{background:var(--btn);color:var(--btn-fg)}
+.seg2{display:flex;height:56px;border-radius:28px;background:var(--card);padding:4px}
+.seg2 button{flex:1;border-radius:24px;font-size:13px;font-weight:700;color:var(--muted);text-align:center}
+.seg2 button.on{background:var(--btn);color:var(--btn-fg)}
+.tog{position:relative;width:52px;height:30px;border-radius:15px;background:var(--off);flex-shrink:0}
+.tog::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:12px;background:#fff;transition:left .2s}
+.tog.on{background:var(--accent)}.tog.on::after{left:25px}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.qa{height:92px;border-radius:22px;background:var(--card);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;font-size:13px;font-weight:600;position:relative}
+.dot{width:8px;height:8px;border-radius:4px;background:var(--accent);display:inline-block;flex-shrink:0}
+.unread{position:absolute;top:12px;right:14px;width:10px;height:10px;border-radius:5px;background:var(--accent)}
+.bar{position:relative;height:6px;border-radius:3px;background:var(--line)}.bar i{position:absolute;left:0;top:0;height:6px;border-radius:3px;background:var(--accent)}
+.segs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}.segs i{height:6px;border-radius:3px;background:var(--seg-off)}.segs i.on{background:var(--accent)}
+.navbar{position:absolute;left:24px;right:24px;bottom:16px;height:68px;border-radius:34px;background:var(--ink);display:flex;align-items:center;justify-content:space-between;padding:0 10px;box-shadow:0 12px 28px var(--shadow)}
+.navbar button{width:48px;height:48px;border-radius:24px;display:flex;align-items:center;justify-content:center;color:var(--ink-muted);position:relative}
+.navbar button.on{background:var(--accent);color:var(--on-accent)}
+.trackwrap{flex:1;min-height:0;display:flex;flex-direction:column}
+.mapbox{flex:1;min-height:220px;position:relative;background:var(--map);overflow:hidden}
+.mapbox svg.map{position:absolute;inset:0;width:100%;height:100%;display:block}
+.mb{fill:var(--map-block)}.mr{stroke:var(--map-road);fill:none;stroke-linecap:round}
+.mapbtn{position:absolute;top:16px;left:24px}
+.mappill{position:absolute;top:16px;right:24px;height:44px;border-radius:22px;background:var(--bg);color:var(--fg);padding:0 16px;display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;box-shadow:0 6px 18px var(--shadow)}
+.mapbtn .circ{background:var(--bg);box-shadow:0 6px 18px var(--shadow)}
+.sheet{flex:none;max-height:64%;overflow-y:auto;background:var(--ink);color:var(--ink-fg);border-radius:32px 32px 0 0;padding:12px 24px 24px;display:flex;flex-direction:column;gap:16px;margin-top:-28px;position:relative}
+.sheet>*{flex-shrink:0}
+.grab{align-self:center;width:44px;height:4px;border-radius:2px;background:var(--seg-off)}
+.sheet .muted{color:var(--ink-muted)}
+.sheet .inp{background:var(--ink-card);border-color:transparent;color:var(--ink-fg)}
+.pulse{transform-box:fill-box;transform-origin:center;animation:pulse 1.8s ease-out infinite}
+@keyframes pulse{0%{transform:scale(1);opacity:.45}100%{transform:scale(2.2);opacity:0}}
+.chatlist{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:12px;padding:4px 0}
+.msg{max-width:260px;display:flex;flex-direction:column;gap:4px}
+.msg span.t{font-size:14px;line-height:20px;font-weight:500;padding:12px 16px;overflow-wrap:anywhere}
+.msg.me{align-self:flex-end;align-items:flex-end}.msg.me span.t{background:var(--accent);color:var(--on-accent);border-radius:20px 20px 6px 20px}
+.msg.them{align-self:flex-start}.msg.them span.t{background:var(--card);border-radius:20px 20px 20px 6px}
+.chip{border:1px solid var(--line);border-radius:20px;height:40px;padding:0 14px;font-size:13px;font-weight:600;display:flex;align-items:center}
+.composer{display:flex;align-items:center;gap:10px;background:var(--card);border-radius:32px;height:60px;padding:0 8px 0 20px}
+.composer input{flex:1;min-width:0;border:0;background:transparent;outline:0;font-size:14px;font-weight:500}
+.overlay{position:absolute;inset:0;background:rgba(11,11,12,.55);display:flex;align-items:flex-end;z-index:5}
+.osheet{width:100%;background:var(--bg);border-radius:32px 32px 0 0;padding:12px 24px 28px;display:flex;flex-direction:column;gap:16px;max-height:88%;overflow-y:auto}
+.osheet .grab{background:var(--line)}
+#toast{position:fixed;top:calc(12px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);width:min(382px,calc(100% - 32px));z-index:20;background:var(--ink);color:var(--ink-fg);border-radius:24px;padding:12px 16px;display:flex;align-items:center;gap:10px;font-size:13px;font-weight:600;box-shadow:0 10px 24px var(--shadow)}
+#toast[hidden]{display:none}
+.banner{border:1px solid var(--accent);background:var(--accent-soft);border-radius:22px;padding:14px 16px;font-size:13px;line-height:18px;font-weight:600}
+.tl{position:relative;padding-left:36px;display:flex;justify-content:space-between;gap:12px}
+.tl .d{position:absolute;left:0;top:3px;width:20px;height:20px;border-radius:10px;background:var(--line);display:flex;align-items:center;justify-content:center;color:#fff}
+.tl.done .d{background:var(--btn);color:var(--btn-fg)}.tl.now .d{background:var(--accent);box-shadow:0 0 0 5px var(--accent-soft)}
+.pin{font-size:30px;font-weight:800;letter-spacing:6px}
+.stars{display:flex;justify-content:center;gap:8px}
+.star{width:52px;height:52px;border-radius:26px;background:var(--card);display:flex;align-items:center;justify-content:center}
+.star svg{fill:none;stroke:var(--muted);stroke-width:1.6;stroke-linejoin:round}.star.on svg{fill:var(--accent);stroke:var(--accent)}
+@media (prefers-reduced-motion:reduce){.pulse{animation:none}.tog::after{transition:none}}
+</style>
+<div id="app" aria-live="polite"></div>
+<div id="toast" role="status" hidden></div>
+<script>
+(function () {
+'use strict';
+
+/* ---------------------------------------------------------------- data */
+var CAT = {
+  zones: {
+    near: { label: 'Nearby', range: 'Up to 5 km', km: 4, Standard: 1800, Express: 2800, mins: { Standard: 35, Express: 20 } },
+    city: { label: 'Across town', range: '5 to 15 km', km: 10, Standard: 3000, Express: 4600, mins: { Standard: 60, Express: 35 } },
+    far: { label: 'Far', range: '15 to 30 km', km: 22, Standard: 4800, Express: 7200, mins: { Standard: 100, Express: 60 } }
+  },
+  sizes: {
+    env: { label: 'Envelope', range: 'Up to 1 kg', add: 0 },
+    small: { label: 'Small box', range: 'Up to 5 kg', add: 600 },
+    large: { label: 'Large box', range: 'Up to 15 kg', add: 1600 }
+  },
+  fee: 250, ins: 500, share: 0.8
+};
+var STAGE = ['Finding a rider', 'Rider assigned', 'Picked up', 'Rider arrived', 'Delivered'];
+var HINT = ['Looking for a rider near the pickup', 'Rider heading to the pickup', 'On the way to the delivery address', 'Rider is at the door. Share your PIN', 'Delivered'];
+var RSTAGE = ['New request', 'Head to pickup', 'Delivering', 'At drop-off', 'Completed'];
+var PTS = [[32, 346], [110, 346], [110, 264], [222, 264], [222, 176], [284, 176]];
+var PICK = 272 / 422;
+var DEST = { x: 284, y: 176 };
+
+var IC = {
+  home: '<path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
+  pin: '<path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/>',
+  box: '<path d="M3 7l9-4 9 4v10l-9 4-9-4z"/><path d="M3 7l9 4 9-4"/><path d="M12 11v10"/>',
+  chat: '<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/>',
+  user: '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6 8-6s8 2 8 6"/>',
+  phone: '<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a1 1 0 0 1-1 1A15 15 0 0 1 4 5a1 1 0 0 1 1-1z"/>',
+  back: '<path d="M15 5l-7 7 7 7"/>',
+  send: '<path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4z"/>',
+  check: '<path d="M5 12l5 5 9-10"/>',
+  bike: '<circle cx="6" cy="17" r="3"/><circle cx="18" cy="17" r="3"/><path d="M6 17l4-8h5l3 8"/><path d="M10 9L8 6H6"/>',
+  wallet: '<path d="M3 7h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M3 7l2-3h12"/><circle cx="16.5" cy="13.5" r="1.2"/>',
+  search: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/>',
+  arrow: '<path d="M5 12h14"/><path d="M13 6l6 6-6 6"/>',
+  star: '<path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/>',
+  shield: '<path d="M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4"/>'
+};
+function ico(n, s) { s = s || 22; return '<svg class="i" width="' + s + '" height="' + s + '" viewBox="0 0 24 24" aria-hidden="true">' + IC[n] + '</svg>'; }
+function logo(sz) {
+  return '<svg width="' + sz + '" height="' + sz + '" viewBox="0 0 64 64" role="img" aria-label="FeelCalm logo"><rect width="64" height="64" rx="18" style="fill:var(--logo)"/><path d="M32 9c-8.6 0-14.5 6.3-14.5 14 0 10 11 19.5 14.5 22.3 3.5-2.8 14.5-12.3 14.5-22.3C46.5 15.3 40.6 9 32 9z" fill="#2347FF"/><circle cx="32" cy="23" r="5.5" fill="#fff"/><path d="M14 54c4-3.4 8-3.4 12 0s8 3.4 12 0 8-3.4 12 0" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/></svg>';
+}
+
+/* ---------------------------------------------------------------- helpers */
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+function money(n) { return '₦' + Number(n || 0).toLocaleString('en-US'); }
+function digits(p) { return String(p || '').replace(/[^0-9+]/g, ''); }
+function initials(n) { var p = String(n || '').trim().split(/\s+/).filter(Boolean); return p.length ? (p[0][0] + (p.length > 1 ? p[p.length - 1][0] : '')).toUpperCase() : '?'; }
+function timeNow() { return new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }); }
+function quote(f) {
+  var z = CAT.zones[f.zone], sz = CAT.sizes[f.size];
+  var delivery = z[f.service], ins = f.insured ? CAT.ins : 0;
+  return { delivery: delivery, size: sz.add, fee: CAT.fee, ins: ins, total: delivery + sz.add + CAT.fee + ins, payout: Math.round((delivery + sz.add) * CAT.share), km: z.km, mins: z.mins[f.service], zoneLabel: z.label, sizeLabel: sz.label };
+}
+function quoteRows(q, service) {
+  var r = [['Delivery · ' + q.zoneLabel + ' · ' + service, money(q.delivery)], ['Package · ' + q.sizeLabel, q.size ? money(q.size) : 'Included'], ['Service fee', money(q.fee)]];
+  if (q.ins) r.push(['Parcel protection', money(q.ins)]);
+  return r.map(function (x) { return '<div class="row between g12"><span>' + esc(x[0]) + '</span><span class="num">' + esc(x[1]) + '</span></div>'; }).join('') +
+    '<div class="row between g12 xb"><span>Total</span><span class="num">' + money(q.total) + '</span></div>';
+}
+function pathPoint(rp) {
+  var lens = [], total = 0, i;
+  for (i = 1; i < PTS.length; i++) { var l = Math.abs(PTS[i][0] - PTS[i - 1][0]) + Math.abs(PTS[i][1] - PTS[i - 1][1]); lens.push(l); total += l; }
+  var d = Math.max(0, Math.min(1, rp)) * total;
+  for (i = 0; i < lens.length; i++) {
+    if (d <= lens[i]) { var t = lens[i] ? d / lens[i] : 0; return { x: PTS[i][0] + (PTS[i + 1][0] - PTS[i][0]) * t, y: PTS[i][1] + (PTS[i + 1][1] - PTS[i][1]) * t }; }
+    d -= lens[i];
+  }
+  return { x: DEST.x, y: DEST.y };
+}
+async function hashPin(id, pin) {
+  var s = id + ':' + pin;
+  try {
+    var b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
+    return Array.from(new Uint8Array(b)).map(function (x) { return x.toString(16).padStart(2, '0'); }).join('');
+  } catch (e) {
+    var h = 2166136261; for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; }
+    return 'f' + h.toString(16);
+  }
+}
+
+/* ---------------------------------------------------------------- state */
+var S = {
+  db: null, user: null, room: null, uid: null, canWrite: null, boot: 'loading',
+  profile: undefined, role: 'customer', wRole: 'customer', veh: 'Motorbike',
+  screen: 'home', cur: null, drafts: {}, form: { zone: 'city', size: 'small', service: 'Standard', pay: 'Card', insured: false },
+  mine: {}, follow: {}, job: {}, open: {}, pins: {}, msgs: [], peers: [],
+  online: true, safety: false, receipt: null, rating: 0, tip: 0, err: '', findMsg: '',
+  myPos: { x: 322, y: 206 }, rp: null, rpShip: null, readTs: 0, lastPres: '', busy: false
+};
+var $app = document.getElementById('app');
+var $toast = document.getElementById('toast');
+var subs = [], followSubs = {}, msgSub = null, msgFor = null, profSub = null;
+var toastT = null, typeT = null, renderQ = false, lastScreen = '';
+
+function D(id, fb) { return S.drafts[id] != null ? S.drafts[id] : (fb == null ? '' : fb); }
+function P() { return 'data/users/' + S.uid + '/profile'; }
+function ship(id) { return S.mine[id] || S.job[id] || S.follow[id] || S.open[id]; }
+function toast(msg) {
+  $toast.textContent = msg; $toast.hidden = false;
+  clearTimeout(toastT); toastT = setTimeout(function () { $toast.hidden = true; }, 3600);
+}
+function notify(msg, important) { if (S.profile && S.profile.calm !== false && !important) return; toast(msg); }
+function fail(e) { toast((e && e.code === 'invalid_argument') ? 'You need Contributor access to save. Ask the owner to share it with you.' : 'Something went wrong. Check your connection and try again.'); }
+
+function curShip() {
+  var k, s;
+  if (S.role === 'rider') {
+    for (k in S.job) { s = S.job[k]; if (s.stage >= 1 && s.stage <= 3) { S.cur = s.id; return s; } }
+    s = S.cur && S.job[S.cur]; return (s && s.stage === 4) ? s : null;
+  }
+  if (S.cur && ship(S.cur)) return ship(S.cur);
+  var all = Object.assign({}, S.follow, S.mine), list = [];
+  for (k in all) { s = all[k]; if (s.stage >= 0 && (s.stage < 4 || !s.rated)) list.push(s); }
+  list.sort(function (a, b) { return (b.created || 0) - (a.created || 0); });
+  S.cur = list[0] ? list[0].id : null;
+  return list[0] || null;
+}
+function riderRp(sh) {
+  if (S.role === 'rider' && sh.riderId === S.uid && S.rpShip === sh.id && S.rp != null) return S.rp;
+  var p = S.peers.find(function (x) { return !x.sameTab && x.presence && x.presence.ship === sh.id && x.presence.role === 'rider' && typeof x.presence.rp === 'number'; });
+  return p ? p.presence.rp : (sh.rp || 0);
+}
+function recvPos(sh) {
+  if (S.role === 'customer' && S.profile && S.profile.share !== false) return S.myPos;
+  var p = S.peers.find(function (x) { return !x.sameTab && x.presence && x.presence.ship === sh.id && x.presence.role === 'customer' && typeof x.presence.px === 'number'; });
+  return p ? { x: p.presence.px, y: p.presence.py } : null;
+}
+function liveInfo(sh) {
+  var rp = riderRp(sh), q = sh.q || { mins: 30, km: 5 };
+  return { rp: rp, eta: sh.stage >= 3 ? 0 : Math.max(1, Math.ceil(q.mins * (1 - rp))), km: sh.stage >= 3 ? 0 : (q.km * (1 - rp)) };
+}
+function etaText(sh) { if (sh.stage >= 4) return 'Delivered'; if (sh.stage === 3) return 'Arrived'; if (sh.stage === 0) return 'Finding rider'; return liveInfo(sh).eta + ' min'; }
+
+/* ---------------------------------------------------------------- views */
+function navBar() {
+  var rider = S.role === 'rider', sc = S.screen;
+  function b(label, icon, to, on, badge) {
+    return '<button data-act="go" data-to="' + to + '" aria-label="' + label + '"' + (on ? ' class="on"' : '') + '>' + ico(icon) + (badge ? '<span class="unread"></span>' : '') + '</button>';
+  }
+  return '<nav class="navbar" aria-label="Main">' +
+    b('Home', 'home', 'home', sc === 'home') + b('Live map', 'pin', 'track', sc === 'track') +
+    (rider ? b('Earnings', 'wallet', 'earn', sc === 'earn') : b('History', 'wallet', 'history', sc === 'history')) +
+    b('Profile', 'user', 'profile', sc === 'profile') + '</nav>';
+}
+function overlays() {
+  var h = '';
+  if (S.safety) {
+    h += '<div class="overlay"><div class="osheet"><div class="grab"></div><div class="xb" style="font-size:20px">Safety</div>' +
+      '<div class="small muted">Your trip is visible only to you, your rider and the receiver. Use these if something feels wrong.</div>' +
+      '<div class="card col g4"><span class="small muted">Emergency line</span><a class="xb" style="font-size:24px" href="tel:112">112</a></div>' +
+      '<button class="btn soft" data-act="shareTrip">Copy tracking ID to share</button>' +
+      '<button class="btn" style="color:var(--accent)" data-act="closeOv">Close</button></div></div>';
+  }
+  var r = S.receipt && ship(S.receipt);
+  if (r) {
+    h += '<div class="overlay"><div class="osheet"><div class="grab"></div><div class="row between"><div class="xb" style="font-size:20px">Receipt</div><span class="badge">' + esc(r.id) + '</span></div>' +
+      '<div class="col g12">' + quoteRows(r.q, r.service) + (r.tip ? '<div class="row between"><span>Tip</span><span class="num">' + money(r.tip) + '</span></div>' : '') + '</div>' +
+      '<div class="row between small muted"><span>Paid with</span><span>' + esc(r.pay) + '</span></div>' +
+      '<div class="small muted">' + esc(r.from) + ' to ' + esc(r.to) + '</div>' +
+      '<button class="btn" style="color:var(--accent)" data-act="closeOv">Close</button></div></div>';
+  }
+  return h;
+}
+function shell(content, nav) {
+  return '<div class="scroll' + (nav ? ' nav' : '') + '">' + content + '</div>' + (nav ? navBar() : '') + overlays();
+}
+function readOnlyBanner() {
+  return S.canWrite === false ? '<div class="banner">You can view FeelCalm but not save changes. Ask the owner to give you Contributor access.</div>' : '';
+}
+
+function vBoot() {
+  var msg = { loading: 'Starting FeelCalm', nodb: 'FeelCalm needs the storage service that is only available when you open this page signed in to Claude.', nouser: 'Sign in to Claude to use FeelCalm. Your profile and deliveries are saved to your account.' }[S.boot] || '';
+  return '<div class="scroll center" style="gap:16px">' + logo(64) + '<div class="brand" style="font-size:26px">Feel<b>Calm</b></div><div class="small muted" style="max-width:280px">' + esc(msg) + '</div></div>';
+}
+
+function vWelcome() {
+  var r = S.wRole, cust = r === 'customer';
+  var veh = ['Motorbike', 'Bicycle', 'Car'].map(function (v) { return '<button data-act="setVeh" data-v="' + v + '"' + (S.veh === v ? ' class="on"' : '') + '>' + v + '</button>'; }).join('');
+  return shell(
+    '<div class="ink col g24" style="border-radius:36px;padding:24px;min-height:230px;justify-content:space-between">' +
+      '<div class="row g12">' + logo(48) + '<span class="brand" style="font-size:24px">Feel<b style="color:#6C88FF">Calm</b></span></div>' +
+      '<div class="col g8"><div class="xb" style="font-size:28px;line-height:34px">Deliveries that feel calm.</div><div class="small mut">Live tracking for you, your rider and the person receiving.</div></div></div>' +
+    readOnlyBanner() +
+    '<div class="grid2"><button class="opt' + (cust ? ' on' : '') + '" data-act="wRole" data-r="customer" style="height:76px;justify-content:center;border-radius:24px"><span class="t" style="font-size:15px">Send or receive</span><span class="s">I am a customer</span></button>' +
+    '<button class="opt' + (!cust ? ' on' : '') + '" data-act="wRole" data-r="rider" style="height:76px;justify-content:center;border-radius:24px"><span class="t" style="font-size:15px">Ride and earn</span><span class="s">I am a rider</span></button></div>' +
+    '<div class="col g12">' +
+      '<input class="inp" id="w-name" aria-label="Full name" placeholder="Full name" value="' + esc(D('w-name')) + '">' +
+      '<input class="inp" id="w-phone" aria-label="Phone number" inputmode="tel" placeholder="' + (cust ? 'Phone number' : 'Phone number customers will call') + '" value="' + esc(D('w-phone')) + '">' +
+      (cust ? '<input class="inp" id="w-address" aria-label="Home or office address" placeholder="Home or office address" value="' + esc(D('w-address')) + '">'
+            : '<div class="seg2" role="group" aria-label="Vehicle">' + veh + '</div><input class="inp" id="w-plate" aria-label="Plate number" placeholder="Plate number (optional)" value="' + esc(D('w-plate')) + '">') +
+      (S.err ? '<div class="small b" style="color:var(--accent);padding-left:8px">' + esc(S.err) + '</div>' : '') +
+    '</div>' +
+    '<button class="btn primary" data-act="createProfile"' + (S.busy ? ' disabled' : '') + '>Continue</button>', false);
+}
+
+function shipCard(sh) {
+  var rider = S.role === 'rider';
+  var left = sh.stage === 4 ? 'Delivered to ' + esc(sh.rName) : (sh.stage >= 1 ? 'Arrives in ' + etaText(sh) : 'Finding a rider');
+  return '<button class="outline col g16" style="width:100%" data-act="openShip" data-id="' + esc(sh.id) + '">' +
+    '<div class="row g12"><div class="circ dk" style="border-radius:14px">' + ico('box') + '</div>' +
+    '<div class="col f1 g4"><span class="h3 trunc">' + esc(sh.id) + '</span><span class="small muted trunc">' + esc(sh.item) + ' · ' + esc(sh.service) + '</span></div>' +
+    '<span class="badge">' + (rider ? RSTAGE[sh.stage] : STAGE[sh.stage]) + '</span></div>' +
+    '<div class="col g8"><div class="bar"><i style="width:' + ['10%', '30%', '60%', '90%', '100%'][sh.stage] + '"></i></div>' +
+    '<div class="row between small b"><span class="muted">' + left + '</span><span style="color:var(--accent)">' + (sh.stage === 4 && !sh.rated && S.role === 'customer' ? 'Rate and tip' : 'Live tracking') + '</span></div></div></button>';
+}
+
+function vHomeC() {
+  var sh = curShip(), pr = S.profile, unread = chatUnread();
+  return shell(
+    '<div class="row g12">' + logo(40) + '<span class="brand f1" style="font-size:20px">Feel<b>Calm</b></span>' +
+    '<button class="circ dk" aria-label="Open profile" data-act="go" data-to="profile" style="font-weight:700">' + esc(initials(pr.name)) + '</button></div>' +
+    readOnlyBanner() +
+    '<div class="col g4"><span class="h1">Hello' + (pr.name ? ', ' + esc(pr.name.trim().split(' ')[0]) : '') + '</span><span class="small muted trunc">' + esc(pr.address || 'Add your address in Profile') + '</span></div>' +
+    '<div class="ink col g16"><div class="col g6"><span class="xb" style="font-size:20px">Track a package</span><span class="small mut">' + esc(S.findMsg || 'Enter a tracking ID to follow a parcel sent to you or by you.') + '</span></div>' +
+    '<div class="row g8" style="background:var(--bg);color:var(--fg);border-radius:30px;height:56px;padding:0 8px 0 18px"><span class="muted">' + ico('search', 20) + '</span>' +
+    '<input id="t-id" aria-label="Tracking ID" placeholder="e.g. FC-48210" value="' + esc(D('t-id')) + '" data-enter="findShip" style="flex:1;min-width:0;border:0;background:transparent;outline:0;font-weight:500;color:var(--fg)">' +
+    '<button class="circ acc" aria-label="Find shipment" data-act="findShip" style="width:42px;height:42px;border-radius:21px">' + ico('arrow', 20) + '</button></div></div>' +
+    '<div class="grid3"><button class="qa" data-act="go" data-to="new">' + ico('box', 24) + '<span>Send parcel</span></button>' +
+    '<button class="qa" data-act="go" data-to="chat">' + ico('chat', 24) + '<span>Messages</span>' + (unread ? '<span class="unread"></span>' : '') + '</button>' +
+    '<button class="qa" data-act="go" data-to="track">' + ico('pin', 24) + '<span>Live map</span></button></div>' +
+    '<div class="col g12"><span class="h2">Current shipment</span>' +
+    (sh ? shipCard(sh) :
+      '<div class="dashed col g12" style="align-items:center"><div class="circ" style="border-radius:16px;width:48px;height:48px">' + ico('box', 24) + '</div>' +
+      '<div class="col g4"><span class="h3">No shipments yet</span><span class="small muted">Send a parcel at a fixed price and watch your rider arrive live.</span></div>' +
+      '<button class="btn sm primary" data-act="go" data-to="new">Send a parcel</button></div>') + '</div>', true);
+}
+
+function vHomeR() {
+  var pr = S.profile, jobs = Object.keys(S.job).map(function (k) { return S.job[k]; });
+  var active = curShip(), done = jobs.filter(function (j) { return j.stage === 4; });
+  var earn = done.reduce(function (a, j) { return a + (j.q ? j.q.payout : 0) + (j.tip || 0); }, 0);
+  var rated = done.filter(function (j) { return j.rating > 0; });
+  var avg = rated.length ? (rated.reduce(function (a, j) { return a + j.rating; }, 0) / rated.length).toFixed(1) : 'New';
+  var reqs = Object.keys(S.open).map(function (k) { return S.open[k]; }).sort(function (a, b) { return (b.created || 0) - (a.created || 0); });
+  var list = '';
+  if (active && active.stage <= 3) list = shipCard(active);
+  else if (!S.online) list = '<div class="card center col g8" style="padding:24px"><span class="h3">You are offline</span><span class="small muted">Go online to receive delivery requests.</span></div>';
+  else if (!reqs.length) list = '<div class="dashed col g8" style="align-items:center"><span class="row g8 b" style="color:var(--accent);font-size:13px"><span class="dot"></span>Looking for requests</span><span class="small muted">New deliveries appear here with your payout shown first. Customers on other phones can send one right now.</span></div>';
+  else list = reqs.map(function (r) {
+    return '<div class="outline col g16" style="border:2px solid var(--accent)"><div class="row between"><span class="b" style="color:var(--accent);font-size:13px">New request</span><span class="xb" style="font-size:22px">' + money(r.q.payout) + '</span></div>' +
+      '<div class="col g8"><div class="col"><span class="small muted">Pickup</span><span class="b">' + esc(r.from) + '</span></div><div class="col"><span class="small muted">Drop-off</span><span class="b">' + esc(r.to) + '</span></div></div>' +
+      '<div class="small b muted">' + esc(r.item) + ' · ' + esc(r.q.sizeLabel) + ' · ' + esc(r.service) + ' · ' + r.q.km + ' km</div>' +
+      '<button class="btn primary" data-act="accept" data-id="' + esc(r.id) + '"' + (S.busy ? ' disabled' : '') + '>Accept delivery</button></div>';
+  }).join('');
+  if (active && active.stage === 4) list = '<div class="ink col g6"><span class="small mut b">Delivery complete</span><span class="xb" style="font-size:26px">' + money(active.q.payout) + ' earned</span><button class="btn sm white" data-act="riderDone" style="align-self:flex-start;margin-top:8px">Back to requests</button></div>';
+  return shell(
+    '<div class="row g12">' + logo(40) + '<span class="brand f1" style="font-size:20px">Feel<b>Calm</b> <span class="small muted b">Rider</span></span>' +
+    '<button class="circ dk" aria-label="Open profile" data-act="go" data-to="profile" style="font-weight:700">' + esc(initials(pr.name)) + '</button></div>' +
+    readOnlyBanner() +
+    '<div class="ink col g16"><div class="row between"><div class="col g4"><span class="small mut">Earned so far</span><span class="xb num" style="font-size:32px">' + money(earn) + '</span></div>' +
+    '<button class="btn sm onink" role="switch" aria-checked="' + S.online + '" data-act="toggleOnline" style="' + (S.online ? 'background:var(--accent);color:var(--on-accent)' : '') + '"><span class="dot" style="background:' + (S.online ? 'currentColor' : 'var(--ink-muted)') + '"></span>' + (S.online ? 'Online' : 'Offline') + '</button></div>' +
+    '<div class="grid3"><div class="card col g4" style="background:var(--ink-card);padding:12px 14px"><span class="xb num" style="font-size:18px">' + done.length + '</span><span class="tiny mut b">Trips</span></div>' +
+    '<div class="card col g4" style="background:var(--ink-card);padding:12px 14px"><span class="xb num" style="font-size:18px">' + avg + '</span><span class="tiny mut b">Rating</span></div>' +
+    '<div class="card col g4" style="background:var(--ink-card);padding:12px 14px"><span class="xb" style="font-size:18px">' + esc(pr.vehicle || S.veh) + '</span><span class="tiny mut b">Vehicle</span></div></div></div>' +
+    (!pr.phone ? '<button class="banner row g12" data-act="go" data-to="profile" style="width:100%"><span class="f1">Add the number customers can call you on.</span><span style="color:var(--accent)">Add</span></button>' : '') +
+    '<div class="col g12"><span class="h2">Deliveries</span>' + list + '</div>', true);
+}
+
+function vNew() {
+  var f = S.form, q = quote(f), z = CAT.zones;
+  function opts(map, key, getP) {
+    return '<div class="grid3">' + Object.keys(map).map(function (k) {
+      return '<button class="opt' + (f[key] === k ? ' on' : '') + '" data-act="setForm" data-k="' + key + '" data-v="' + k + '"><span class="t">' + map[k].label + '</span><span class="s">' + map[k].range + '</span><span class="p">' + getP(map[k]) + '</span></button>';
+    }).join('') + '</div>';
+  }
+  var pay = ['Card', 'Bank transfer', 'Cash to rider'].map(function (p) { return '<button class="pill' + (f.pay === p ? ' on' : '') + '" data-act="setForm" data-k="pay" data-v="' + p + '">' + p + '</button>'; }).join('');
+  function field(id, label, ph, fb) { return '<div class="col g8"><label class="lab" for="' + id + '">' + label + '</label><input class="inp" id="' + id + '" placeholder="' + ph + '" value="' + esc(D(id, fb)) + '"></div>'; }
+  return '<div class="scroll" style="padding-bottom:16px">' +
+    '<div class="row between"><button class="circ" aria-label="Back" data-act="go" data-to="home">' + ico('back') + '</button><span class="b" style="font-size:15px">Send a parcel</span><span style="width:44px"></span></div>' +
+    readOnlyBanner() +
+    field('n-item', 'What are you sending?', 'e.g. Documents, shoes, laptop') +
+    field('n-from', 'Pickup address', 'Where should the rider collect it?', S.profile.address) +
+    field('n-to', 'Delivery address', 'Where is it going?') +
+    '<div class="grid2">' + field('n-rn', 'Receiver name', 'Name') + field('n-rp', 'Receiver phone', 'Phone') + '</div>' +
+    '<div class="col g8"><span class="lab">Distance</span>' + opts(z, 'zone', function (o) { return money(o[f.service]); }) + '</div>' +
+    '<div class="col g8"><span class="lab">Package size</span>' + opts(CAT.sizes, 'size', function (o) { return o.add ? '+' + money(o.add) : 'Included'; }) + '</div>' +
+    '<div class="col g8"><span class="lab">Speed</span><div class="seg2" role="group" aria-label="Speed"><button data-act="setForm" data-k="service" data-v="Standard"' + (f.service === 'Standard' ? ' class="on"' : '') + '>Standard · ' + z[f.zone].mins.Standard + ' min</button><button data-act="setForm" data-k="service" data-v="Express"' + (f.service === 'Express' ? ' class="on"' : '') + '>Express · ' + z[f.zone].mins.Express + ' min</button></div></div>' +
+    '<div class="col g8"><span class="lab">Pay with</span><div class="row g8 wrap">' + pay + '</div></div>' +
+    '<button class="outline row between g12" style="width:100%" role="switch" aria-checked="' + f.insured + '" data-act="toggleIns"><div class="col g4"><span class="b" style="font-size:14px">Protect this parcel</span><span class="small muted">Covers loss or damage up to ₦50,000 · +' + money(CAT.ins) + '</span></div><span class="tog' + (f.insured ? ' on' : '') + '"></span></button>' +
+    field('n-note', 'Note for the rider (optional)', 'Gate code, landmark, call on arrival') +
+    '<div class="card col g12" style="border-radius:24px;padding:18px"><span class="h3">Price breakdown</span>' + quoteRows(q, f.service) + '<span class="tiny muted">Fixed price. No surge, no hidden fees.</span></div>' +
+    (S.err ? '<div class="small b" style="color:var(--accent);padding-left:8px">' + esc(S.err) + '</div>' : '') +
+    '<div class="row g16"><div class="col g4 nos"><span class="small muted b">Total</span><span class="xb num" style="font-size:24px">' + money(q.total) + '</span></div><button class="btn dark" data-act="createShip"' + (S.busy ? ' disabled' : '') + '>Confirm and find a rider</button></div>' +
+    '</div>';
+}
+
+function mapSvg(sh) {
+  var xs = [44, 122, 234, 296], ws = [54, 88, 38, 78], ys = [102, 188, 276, 358], hs = [62, 64, 58, 66], r = '', i, j;
+  for (i = 0; i < 4; i++) for (j = 0; j < 4; j++) r += '<rect class="mb" x="' + xs[i] + '" y="' + ys[j] + '" width="' + ws[i] + '" height="' + hs[j] + '" rx="6"/>';
+  var roads = [['M-10 90H400', 14], ['M-10 176H400', 10], ['M-10 264H400', 14], ['M-10 346H400', 10], ['M-10 436H400', 14], ['M32 40V520', 10], ['M110 40V520', 14], ['M222 40V520', 14], ['M284 40V520', 10], ['M386 40V520', 10]];
+  r += roads.map(function (x) { return '<path class="mr" d="' + x[0] + '" stroke-width="' + x[1] + '"/>'; }).join('');
+  if (sh) {
+    var route = 'M32 346H110V264H222V176H284';
+    r += '<path d="' + route + '" fill="none" stroke="#fff" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" opacity=".9"/><path d="' + route + '" fill="none" stroke="var(--accent)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>';
+    r += '<g transform="translate(222 264)"><rect x="-18" y="-18" width="36" height="36" rx="12" fill="#0B0B0C" stroke="#fff" stroke-width="3"/><g transform="translate(-8 -8) scale(.667)" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">' + IC.box + '</g></g>';
+    r += '<g transform="translate(284 176)"><circle r="24" fill="#0B0B0C" stroke="#fff" stroke-width="3"/><g transform="translate(-10 -10) scale(.833)" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">' + IC.pin + '</g></g>';
+    r += '<g id="m-recv" transform="translate(322 206)" visibility="hidden"><circle class="pulse" r="15" fill="#0B0B0C" opacity=".4"/><circle r="15" fill="#fff" stroke="#0B0B0C" stroke-width="3"/><g transform="translate(-7 -7) scale(.583)" fill="none" stroke="#0B0B0C" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">' + IC.user + '</g></g>';
+    r += '<g id="m-rider" transform="translate(32 346)"><circle class="pulse" r="22" fill="var(--accent)" opacity=".45"/><circle r="22" fill="var(--accent)" stroke="#fff" stroke-width="4"/><g transform="translate(-10 -10) scale(.833)" fill="none" stroke="var(--on-accent)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">' + IC.bike + '</g></g>';
+  }
+  return '<svg class="map" viewBox="0 0 390 520" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Live map showing the rider and the delivery route"><rect width="390" height="520" fill="var(--map)"/>' + r + '</svg>';
+}
+function mapBox(sh, back) {
+  return '<div class="mapbox">' + mapSvg(sh) + '<div class="mapbtn"><button class="circ" aria-label="Back" data-act="go" data-to="' + back + '">' + ico('back') + '</button></div>' +
+    (sh ? '<div class="mappill"><span class="dot"></span><span id="eta-pill" class="num">' + etaText(sh) + '</span></div>' : '') + '</div>';
+}
+
+function contactRow(name, sub, phone, chat) {
+  var has = digits(phone);
+  return '<div class="row g12" style="background:var(--ink-card);border-radius:24px;padding:10px 10px 10px 12px">' +
+    '<div class="circ" style="background:var(--seg-off);color:var(--ink-fg)">' + ico('user', 20) + '</div>' +
+    '<div class="col f1 g4"><span class="b trunc" style="font-size:14px">' + esc(name) + '</span><span class="small muted trunc">' + esc(sub) + '</span></div>' +
+    (chat ? '<button class="circ wh" aria-label="Open chat" data-act="go" data-to="chat">' + ico('chat', 20) + '</button>' : '') +
+    '<a class="circ ' + (has ? 'acc' : 'off') + '" aria-label="Call ' + esc(name) + '" href="' + (has ? 'tel:' + has : '#') + '">' + ico('phone', 20) + '</a></div>';
+}
+
+function vTrack() {
+  var sh = curShip(), rider = S.role === 'rider';
+  if (!sh) {
+    return '<div class="trackwrap">' + mapBox(null, 'home') + '<div class="sheet center" style="gap:20px;padding-bottom:104px"><div class="grab"></div><div class="col g8"><span class="xb" style="font-size:20px">Nothing on the map yet</span><span class="small muted">' + (rider ? 'Accept a delivery and your route appears here.' : 'Send a parcel and your rider appears here, live.') + '</span></div>' +
+      '<button class="btn primary" data-act="go" data-to="' + (rider ? 'home' : 'new') + '">' + (rider ? 'Back to requests' : 'Send a parcel') + '</button></div></div>' + navBar() + overlays();
+  }
+  var st = sh.stage, segs = [0, 1, 2, 3, 4].map(function (i) { return '<i' + (i <= st ? ' class="on"' : '') + '></i>'; }).join('');
+  var li = liveInfo(sh), body = '';
+  if (!rider) {
+    var isSender = sh.senderId === S.uid, pin = S.pins[sh.id];
+    body = '<div class="row between"><div class="col g4"><span class="small muted">Tracking ID</span><span class="xb" style="font-size:24px">' + esc(sh.id) + '</span></div><span class="badge solid">' + STAGE[st] + '</span></div>' +
+      '<div class="col g8"><div class="segs">' + segs + '</div><span class="small b muted">' + HINT[st] + '</span></div>' +
+      (st < 3 ? '<div class="grid3"><div class="col g4"><span class="small muted">Arrives in</span><span class="b num" id="m-eta" style="font-size:15px">' + etaText(sh) + '</span></div><div class="col g4"><span class="small muted">Distance left</span><span class="b num" id="m-dist" style="font-size:15px">' + li.km.toFixed(1) + ' km</span></div><div class="col g4"><span class="small muted">Total</span><span class="b num" style="font-size:15px">' + money(sh.q.total) + '</span></div></div>' : '') +
+      (isSender && pin && st >= 1 && st < 4 ? '<div class="row between" style="background:var(--ink-card);border-radius:20px;padding:12px 16px"><div class="col g4"><span class="small muted">Delivery PIN</span><span class="tiny muted">Give it to the receiver</span></div><span class="pin num">' + esc(pin) + '</span></div>' : '') +
+      (st === 4 && isSender && !sh.rated ? '<button class="btn primary" data-act="go" data-to="rate">Rate your rider and add a tip</button>' : '') +
+      (sh.riderId ? contactRow(sh.riderName || 'Your rider', (sh.riderVehicle || '') + (sh.riderPhone ? ' · ' + sh.riderPhone : ' · no number yet'), sh.riderPhone, true)
+                  : '<div class="row g12 small b muted" style="background:var(--ink-card);border-radius:24px;padding:16px"><span class="dot"></span>Looking for a rider near the pickup</div>') +
+      (st < 4 ? '<div class="row g8"><button class="btn sm onink f1" data-act="toggleShare" style="padding:0 8px"><span class="dot" style="background:' + (S.profile.share !== false ? 'var(--accent)' : 'var(--ink-muted)') + '"></span>' + (S.profile.share !== false ? 'Location on' : 'Location off') + '</button><button class="btn sm onink f1" data-act="shareTrip" style="padding:0 8px">Share trip</button><button class="btn sm onink f1" data-act="openSafety" style="padding:0 8px">Safety</button></div>' : '') +
+      (st < 4 ? '<div class="small muted center" style="text-align:center">Tap the map to place your own pin for the rider</div>' : '') +
+      (isSender && st < 2 ? '<button class="small b muted" data-act="cancelShip" style="text-align:center;height:24px">Cancel shipment (free before pickup)</button>' : '');
+  } else {
+    var nextTxt = ['Accept to start', 'Head to the pickup', 'Deliver to the receiver', 'Collect the PIN from the receiver', 'Delivery complete'][st];
+    var addr = st >= 2 ? sh.to : sh.from, action = '';
+    if (st === 1) action = '<button class="btn primary" data-act="picked"' + (li.rp >= PICK - 0.001 ? '' : ' disabled') + '>' + (li.rp >= PICK - 0.001 ? 'Confirm pickup' : 'Riding to pickup') + '</button>';
+    if (st === 2) action = '<button class="btn primary" data-act="arrived"' + (li.rp >= 0.999 ? '' : ' disabled') + '>' + (li.rp >= 0.999 ? "I've arrived" : 'Riding to drop-off') + '</button>';
+    if (st === 3) action = '<div class="row g8"><input class="inp f1" id="r-pin" inputmode="numeric" maxlength="4" aria-label="Delivery PIN" placeholder="Receiver 4-digit PIN" value="' + esc(D('r-pin')) + '" data-enter="confirmPin"><button class="btn primary" style="width:auto" data-act="confirmPin"' + (S.busy ? ' disabled' : '') + '>Confirm</button></div>' + (S.err ? '<span class="small b" style="color:var(--accent)">' + esc(S.err) + '</span>' : '');
+    if (st === 4) action = '<button class="btn primary" data-act="riderDone">Done · back to requests</button>';
+    body = '<div class="row between"><div class="col g4"><span class="small muted">' + RSTAGE[st] + '</span><span class="xb" style="font-size:24px">' + esc(sh.id) + '</span></div><div class="col g4" style="align-items:flex-end"><span class="small muted">Your payout</span><span class="xb num" style="font-size:20px">' + money(sh.q.payout) + '</span></div></div>' +
+      '<div class="segs">' + segs + '</div>' +
+      '<div class="col g4"><span class="b" style="font-size:14px">' + nextTxt + '</span><span class="small muted">' + esc(addr) + '</span>' + (sh.note ? '<span class="small muted">Note: ' + esc(sh.note) + '</span>' : '') + '</div>' +
+      '<div class="small muted row g8"><span class="dot"></span>Demo GPS: your position moves along the route by itself</div>' +
+      contactRow('Sender · ' + (sh.senderName || ''), sh.senderPhone || 'no number', sh.senderPhone, false) +
+      contactRow('Receiver · ' + (sh.rName || ''), sh.rPhone || 'no number', sh.rPhone, true) + action;
+  }
+  return '<div class="trackwrap">' + mapBox(sh, 'home') + '<div class="sheet"><div class="grab"></div>' + body + '</div></div>' + overlays();
+}
+
+function msgHtml(m) {
+  var me = m.role === S.role;
+  return '<div class="msg ' + (me ? 'me' : 'them') + '"><span class="t">' + esc(m.text) + '</span><span class="tiny muted">' + esc(m.time || '') + '</span></div>';
+}
+function chatListHtml() {
+  if (!S.msgs.length) return '<div class="small muted center" style="margin:auto;text-align:center;max-width:240px">No messages yet. Say hello to start the chat.</div>';
+  return S.msgs.map(msgHtml).join('');
+}
+function chatUnread() {
+  var l = S.msgs[S.msgs.length - 1]; return !!(l && l.role !== S.role && l.ts > S.readTs && S.screen !== 'chat');
+}
+function typingOn() {
+  var sh = curShip(); if (!sh) return false;
+  return S.peers.some(function (x) { return !x.sameTab && x.presence && x.presence.ship === sh.id && x.presence.role && x.presence.role !== S.role && x.presence.typing; });
+}
+function vChat() {
+  var sh = curShip(), rider = S.role === 'rider', on = sh && sh.stage >= 1;
+  var name = !sh ? 'No active delivery' : (rider ? (sh.rName || 'Receiver') : (sh.riderName || 'Your rider'));
+  var phone = !sh ? '' : (rider ? sh.rPhone : sh.riderPhone), has = digits(phone);
+  var chips = (rider ? ['I have arrived', 'Which gate?', 'Running 5 min late'] : ['Please call at the gate', 'Leave it at the door', 'How far are you?']).map(function (c) { return '<button class="chip" data-act="sendChip" data-t="' + esc(c) + '">' + esc(c) + '</button>'; }).join('');
+  return '<div class="scroll" style="padding-bottom:24px;gap:16px">' +
+    '<div class="row g12"><button class="circ" aria-label="Back" data-act="go" data-to="' + (sh ? 'track' : 'home') + '">' + ico('back') + '</button>' +
+    '<div class="circ dk">' + ico('user', 20) + '</div><div class="col f1 g4"><span class="xb trunc" style="font-size:16px">' + esc(name) + '</span><span class="small muted row g6"><span class="dot" style="background:' + (on ? 'var(--accent)' : 'var(--off)') + '"></span>' + (on ? 'Connected' : 'Not assigned yet') + '</span></div>' +
+    '<a class="circ ' + (has ? 'acc' : 'off') + '" aria-label="Call" href="' + (has ? 'tel:' + has : '#') + '">' + ico('phone', 20) + '</a></div>' +
+    (!on ? '<div class="col center g16" style="flex:1"><div class="circ" style="width:64px;height:64px;border-radius:20px">' + ico('chat', 28) + '</div><div class="col g8"><span class="h2">Chat opens with a delivery</span><span class="small muted">' + (sh ? 'A rider is being assigned. This chat opens as soon as one accepts.' : 'Send a parcel and you can message your rider here.') + '</span></div></div>' :
+      '<div class="chatlist" id="chat-list">' + chatListHtml() + '</div>' +
+      '<div id="typing" class="small muted" ' + (typingOn() ? '' : 'hidden') + '>typing…</div>' +
+      '<div class="row g8 wrap">' + chips + '</div>' +
+      '<div class="composer"><input id="c-msg" aria-label="Message" placeholder="Write a message" value="' + esc(D('c-msg')) + '" data-enter="sendChat"><button class="circ dk" aria-label="Send message" data-act="sendChat" style="width:46px;height:46px;border-radius:23px">' + ico('send', 20) + '</button></div>') +
+    '</div>' + overlays();
+}
+
+function vHistory() {
+  var list = Object.keys(S.mine).map(function (k) { return S.mine[k]; }).filter(function (s) { return s.stage === 4 || s.stage === -1; }).sort(function (a, b) { return (b.created || 0) - (a.created || 0); });
+  var rows = list.map(function (s) {
+    return '<button class="card row g12" data-act="receipt" data-id="' + esc(s.id) + '" style="width:100%"><div class="circ" style="background:var(--bg);border-radius:12px;width:40px;height:40px">' + ico(s.stage === 4 ? 'check' : 'box', 20) + '</div>' +
+      '<div class="col f1 g4"><span class="b trunc" style="font-size:14px">' + esc(s.id) + ' · ' + esc(s.item) + '</span><span class="small muted trunc">' + (s.stage === -1 ? 'Cancelled' : 'To ' + esc(s.to) + (s.rating ? ' · ' + s.rating + ' stars' : '')) + '</span></div>' +
+      '<span class="b num" style="font-size:13px">' + (s.stage === -1 ? '' : money((s.q.total || 0) + (s.tip || 0))) + '</span></button>';
+  }).join('');
+  return shell('<span class="h1">History</span>' + readOnlyBanner() + (rows ? '<div class="col g12">' + rows + '</div>' : '<div class="dashed col g8"><span class="h3">No completed deliveries</span><span class="small muted">Finished deliveries and receipts appear here.</span></div>'), true);
+}
+
+function vEarn() {
+  var jobs = Object.keys(S.job).map(function (k) { return S.job[k]; }).filter(function (j) { return j.stage === 4; }).sort(function (a, b) { return (b.deliveredAt || 0) - (a.deliveredAt || 0); });
+  var earn = jobs.reduce(function (a, j) { return a + j.q.payout + (j.tip || 0); }, 0), tips = jobs.reduce(function (a, j) { return a + (j.tip || 0); }, 0);
+  var rows = jobs.map(function (j) { return '<div class="card row g12"><div class="col f1 g4"><span class="b" style="font-size:14px">' + esc(j.id) + '</span><span class="small muted trunc">' + esc(j.to) + '</span></div><span class="b num" style="font-size:13px">+' + money(j.q.payout + (j.tip || 0)) + '</span></div>'; }).join('');
+  return shell('<span class="h1">Earnings</span><div class="ink col g6" style="padding:22px"><span class="small mut">Total earned</span><span class="xb num" style="font-size:36px">' + money(earn) + '</span><span class="small mut">' + jobs.length + ' trips · ' + money(tips) + ' in tips · you keep 80% of each delivery</span></div>' +
+    '<div class="col g12"><span class="h2">Trips</span>' + (rows || '<div class="dashed col g8"><span class="h3">No trips yet</span><span class="small muted">Complete a delivery and it shows up here.</span></div>') + '</div>', true);
+}
+
+function vRate() {
+  var sh = curShip();
+  if (!sh) return shell('<div class="dashed"><span class="h3">Nothing to rate</span></div><button class="btn dark" data-act="go" data-to="home">Back home</button>', false);
+  var stars = [1, 2, 3, 4, 5].map(function (n) { return '<button class="star' + (n <= S.rating ? ' on' : '') + '" aria-label="' + n + ' star' + (n > 1 ? 's' : '') + '" data-act="setRating" data-n="' + n + '"><svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true">' + IC.star + '</svg></button>'; }).join('');
+  var tips = [0, 200, 500, 1000].map(function (v) { return '<button class="pill' + (S.tip === v ? ' on' : '') + '" data-act="setTip" data-v="' + v + '">' + (v ? '+' + money(v) : 'No tip') + '</button>'; }).join('');
+  return shell('<div class="col g12 center" style="padding-top:12px"><div class="circ dk" style="width:72px;height:72px;border-radius:36px">' + ico('check', 30) + '</div><span class="h1">Delivered</span><span class="small muted">' + esc(sh.id) + ' reached ' + esc(sh.rName) + '. How was ' + esc(sh.riderName || 'your rider') + '?</span></div>' +
+    '<div class="stars">' + stars + '</div><div class="col g8"><span class="lab">Add a tip for your rider</span><div class="row g8 wrap">' + tips + '</div></div>' +
+    '<div class="col g8"><label class="lab" for="rt-c">Comment (optional)</label><input class="inp" id="rt-c" placeholder="Anything we should know?" value="' + esc(D('rt-c')) + '"></div>' +
+    '<div class="card row between b"><span>Total paid</span><span class="num">' + money(sh.q.total + S.tip) + '</span></div>' +
+    '<button class="btn dark" data-act="submitRating"' + (S.busy ? ' disabled' : '') + '>Submit</button>', false);
+}
+
+function vProfile() {
+  var p = S.profile, rider = S.role === 'rider';
+  var mine = Object.keys(S.mine).map(function (k) { return S.mine[k]; }), jobs = Object.keys(S.job).map(function (k) { return S.job[k]; }).filter(function (j) { return j.stage === 4; });
+  var s1 = rider ? jobs.length : mine.filter(function (s) { return s.stage >= 0; }).length;
+  var s2 = rider ? money(jobs.reduce(function (a, j) { return a + j.q.payout + (j.tip || 0); }, 0)) : money(mine.filter(function (s) { return s.stage === 4; }).reduce(function (a, s) { return a + s.q.total + (s.tip || 0); }, 0));
+  var veh = ['Motorbike', 'Bicycle', 'Car'].map(function (v) { return '<button data-act="setVeh" data-v="' + v + '"' + ((D('p-veh', p.vehicle || 'Motorbike') === v) ? ' class="on"' : '') + '>' + v + '</button>'; }).join('');
+  function field(id, label, ph, fb) { return '<div class="col g8"><label class="lab" for="' + id + '">' + label + '</label><input class="inp" id="' + id + '" placeholder="' + ph + '" value="' + esc(D(id, fb)) + '"></div>'; }
+  return shell('<div class="row between"><span class="h1">Profile</span><span class="badge">' + (rider ? 'Rider app' : 'Customer app') + '</span></div>' + readOnlyBanner() +
+    '<div class="row g16"><div class="circ dk" style="width:76px;height:76px;border-radius:38px;font-size:26px;font-weight:800">' + esc(initials(p.name)) + '</div><div class="col f1 g6"><span class="xb trunc" style="font-size:20px">' + esc(p.name || 'Your name') + '</span><span class="small muted trunc">' + (rider ? esc((p.vehicle || 'Motorbike') + (p.plate ? ' · ' + p.plate : '')) : esc(p.address || 'No address yet')) + '</span></div></div>' +
+    '<div class="grid2"><div class="card col g4"><span class="xb num" style="font-size:24px">' + s1 + '</span><span class="small muted b">' + (rider ? 'Trips' : 'Shipments') + '</span></div><div class="ink col g4" style="border-radius:22px;padding:16px 18px"><span class="xb num" style="font-size:24px">' + s2 + '</span><span class="small mut b">' + (rider ? 'Earned' : 'Spent') + '</span></div></div>' +
+    '<div class="col g12"><span class="h2">Your details</span>' +
+    field('p-name', 'Full name', 'Your name', p.name) +
+    field('p-phone', rider ? 'Call number (customers call you here)' : 'Phone number', rider ? 'Phone number customers will call' : 'Phone number', p.phone) +
+    (rider ? '<div class="col g8"><span class="lab">Vehicle</span><div class="seg2" role="group" aria-label="Vehicle">' + veh + '</div></div>' + field('p-plate', 'Plate number', 'e.g. LAG 123 AB', p.plate)
+           : field('p-address', 'Delivery address', 'Add your address', p.address)) +
+    '<button class="btn dark" data-act="saveProfile"' + (S.busy ? ' disabled' : '') + '>Save details</button></div>' +
+    '<div class="col g12"><button class="outline row between g12" style="width:100%" role="switch" aria-checked="' + (p.calm !== false) + '" data-act="toggleCalm"><div class="col g4"><span class="h3">Calm mode</span><span class="small muted">Only pickup, arrival and delivery alerts</span></div><span class="tog' + (p.calm !== false ? ' on' : '') + '"></span></button>' +
+    '<button class="outline row between g12" style="width:100%" role="switch" aria-checked="' + (p.share !== false) + '" data-act="toggleShare"><div class="col g4"><span class="h3">Share live location</span><span class="small muted">' + (rider ? 'Customers see you on the map' : 'Your rider sees where to meet you') + '</span></div><span class="tog' + (p.share !== false ? ' on' : '') + '"></span></button>' +
+    '<button class="btn soft" data-act="switchRole">' + (rider ? 'Switch to customer app' : 'Switch to rider app') + '</button></div>', true);
+}
+
+function view() {
+  if (S.boot !== 'ready' || S.profile === undefined) return vBoot();
+  if (!S.profile) return vWelcome();
+  var sc = S.screen;
+  if (sc === 'new' && S.role === 'customer') return vNew();
+  if (sc === 'track') return vTrack();
+  if (sc === 'chat') return vChat();
+  if (sc === 'rate' && S.role === 'customer') return vRate();
+  if (sc === 'history' && S.role === 'customer') return vHistory();
+  if (sc === 'earn' && S.role === 'rider') return vEarn();
+  if (sc === 'profile') return vProfile();
+  S.screen = 'home';
+  return S.role === 'rider' ? vHomeR() : vHomeC();
+}
+
+/* ---------------------------------------------------------------- render */
+function render() {
+  var ae = document.activeElement, keep = (ae && ae.id && $app.contains(ae)) ? { id: ae.id, s: ae.selectionStart, e: ae.selectionEnd } : null;
+  var sc = $app.querySelector('.scroll,.sheet'), top = sc ? sc.scrollTop : 0, same = lastScreen === S.screen;
+  S.cur = S.cur; curShip();
+  syncMsgs(); syncPresence();
+  $app.innerHTML = view();
+  lastScreen = S.screen;
+  if (same) { var n = $app.querySelector('.scroll,.sheet'); if (n) n.scrollTop = top; }
+  var cl = document.getElementById('chat-list'); if (cl) cl.scrollTop = cl.scrollHeight;
+  if (keep) { var el = document.getElementById(keep.id); if (el) { el.focus(); try { el.setSelectionRange(keep.s, keep.e); } catch (e) {} } }
+  updateMap();
+}
+function scheduleRender() { if (renderQ) return; renderQ = true; requestAnimationFrame(function () { renderQ = false; render(); }); }
+function setT(id, x, y) { var g = document.getElementById(id); if (g) g.setAttribute('transform', 'translate(' + x.toFixed(1) + ' ' + y.toFixed(1) + ')'); }
+function updateMap() {
+  var ty = document.getElementById('typing'); if (ty) ty.hidden = !typingOn();
+  var sh = curShip(), svg = $app.querySelector('svg.map'); if (!sh || !svg) return;
+  var li = liveInfo(sh), p = pathPoint(li.rp); setT('m-rider', p.x, p.y);
+  var rp = recvPos(sh), rg = document.getElementById('m-recv');
+  if (rg) { if (rp) { setT('m-recv', rp.x, rp.y); rg.setAttribute('visibility', 'visible'); } else rg.setAttribute('visibility', 'hidden'); }
+  var a = document.getElementById('eta-pill'); if (a) a.textContent = etaText(sh);
+  a = document.getElementById('m-eta'); if (a) a.textContent = etaText(sh);
+  a = document.getElementById('m-dist'); if (a) a.textContent = li.km.toFixed(1) + ' km';
+}
+function renderChatList() {
+  var cl = document.getElementById('chat-list'); if (!cl) { scheduleRender(); return; }
+  cl.innerHTML = chatListHtml(); cl.scrollTop = cl.scrollHeight;
+}
+
+/* ---------------------------------------------------------------- live data */
+function sigOf(d) { var c = Object.assign({}, d); c.rp = 0; return JSON.stringify(c); }
+function applyShip(map, id, data, announce) {
+  var old = map[id]; map[id] = data;
+  if (old && old.stage !== data.stage) stageChanged(data);
+  else if (!old && announce && S.role === 'rider' && data.stage === 0 && S.online) notify('New delivery request nearby', true);
+  return !old || sigOf(old) !== sigOf(data);
+}
+function stageChanged(sh) {
+  if (S.role === 'customer' && (sh.senderId === S.uid || S.follow[sh.id])) {
+    var t = ['', 'Rider assigned and heading to pickup', 'Package picked up and on the way', 'Your rider has arrived. Share your PIN', 'Delivered. Thank you!'][sh.stage];
+    if (t) notify(t, sh.stage >= 2);
+    if (sh.stage === 4 && !sh.rated && S.screen === 'track') { /* stay; rate button shows */ }
+  }
+}
+function watch(q, map) {
+  var first = true;
+  return q.onSnapshot(function (snap) {
+    var need = false, announce = !first;
+    first = false;
+    snap.docChanges().forEach(function (ch) {
+      var id = ch.doc.id;
+      if (ch.type === 'removed') { delete map[id]; need = true; } else if (applyShip(map, id, ch.doc.data(), announce)) need = true;
+    });
+    if (need) scheduleRender(); else updateMap();
+  }, fail);
+}
+function resub() {
+  subs.forEach(function (u) { u(); }); subs = []; S.mine = {}; S.job = {}; S.open = {};
+  if (!S.profile || !S.db) return;
+  var ship = S.db.collection('shipments');
+  subs.push(watch(ship.where('senderId', '==', S.uid), S.mine));
+  subs.push(watch(ship.where('riderId', '==', S.uid), S.job));
+  if (S.role === 'rider' && S.online) subs.push(watch(ship.where('stage', '==', 0).limit(20), S.open));
+}
+function syncFollows() {
+  var ids = (S.profile && S.profile.follows) || [], id;
+  for (id in followSubs) if (ids.indexOf(id) < 0) { followSubs[id](); delete followSubs[id]; delete S.follow[id]; }
+  ids.forEach(function (fid) {
+    if (followSubs[fid]) return;
+    followSubs[fid] = S.db.doc('shipments/' + fid).onSnapshot(function (s) {
+      if (s.exists) { if (applyShip(S.follow, fid, s.data())) scheduleRender(); else updateMap(); } else { delete S.follow[fid]; scheduleRender(); }
+    }, fail);
+  });
+}
+function syncMsgs() {
+  var sh = curShip(), id = sh ? sh.id : null;
+  if (msgFor === id || !S.db) return;
+  if (msgSub) { msgSub(); msgSub = null; }
+  msgFor = id; S.msgs = [];
+  if (!id) return;
+  msgSub = S.db.collection('shipments/' + id + '/messages').orderBy('ts', 'desc').limit(50).onSnapshot(function (snap) {
+    S.msgs = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); }).reverse();
+    if (S.screen === 'chat') renderChatList(); else scheduleRender();
+  }, fail);
+}
+function syncPresence() {
+  if (!S.room) return;
+  var sh = curShip(), live = (S.screen === 'track' || S.screen === 'chat') && sh, p;
+  if (live) {
+    p = { ship: sh.id, role: S.role };
+    if (S.role === 'customer') { var sharing = S.profile && S.profile.share !== false; p.px = sharing ? Math.round(S.myPos.x) : null; p.py = sharing ? Math.round(S.myPos.y) : null; }
+    else if (S.rp != null && S.rpShip === sh.id) p.rp = S.rp;
+  } else p = { ship: null, role: null, rp: null, px: null, py: null, typing: null };
+  var sig = JSON.stringify(p); if (sig === S.lastPres) return; S.lastPres = sig;
+  S.room.presence(p).catch(function () {});
+}
+async function ensurePin(sh) {
+  if (!sh || sh.senderId !== S.uid || S.pins[sh.id] || S.pinTried === sh.id || !S.db) return;
+  S.pinTried = sh.id;
+  try { var d = await S.db.doc('data/users/' + S.uid + '/pin_' + sh.id).get(); if (d.exists) { S.pins[sh.id] = d.data().pin; scheduleRender(); } } catch (e) {}
+}
+
+/* ---------------------------------------------------------------- rider simulation */
+setInterval(function () {
+  if (S.role !== 'rider' || !S.db || !S.profile) return;
+  var sh = curShip(); if (!sh || sh.riderId !== S.uid || sh.stage < 1 || sh.stage > 2) return;
+  if (S.rpShip !== sh.id) { S.rpShip = sh.id; S.rp = sh.rp || 0; }
+  var target = sh.stage === 1 ? PICK : 1, rp = S.rp;
+  if (sh.stage === 2 && rp < PICK) rp = PICK;
+  if (rp >= target) return;
+  var next = Math.min(target, rp + 0.02); S.rp = next;
+  if (S.room && S.profile.share !== false) S.room.presence({ ship: sh.id, role: 'rider', rp: next }).catch(function () {});
+  updateMap();
+  var reached = next >= target;
+  if (!S.writing && (reached || Math.round(next * 100) % 6 === 0)) {
+    S.writing = true;
+    S.db.doc('shipments/' + sh.id).update({ rp: next }).catch(function () {}).then(function () { S.writing = false; });
+  }
+  if (reached) scheduleRender();
+}, 1000);
+
+/* ---------------------------------------------------------------- actions */
+async function guard(fn) {
+  if (S.busy) return; S.busy = true; scheduleRender();
+  try { await fn(); } catch (e) { fail(e); } finally { S.busy = false; scheduleRender(); }
+}
+var A = {
+  go: function (d) { if (d.to === 'chat') S.readTs = Date.now(); if (d.to === 'rate') { S.rating = 0; S.tip = 0; } S.err = ''; S.screen = d.to; render(); },
+  wRole: function (d) { S.wRole = d.r; S.err = ''; render(); },
+  setVeh: function (d) { S.veh = d.v; S.drafts['p-veh'] = d.v; render(); },
+  createProfile: function () {
+    var name = D('w-name').trim(), phone = D('w-phone').trim();
+    if (!name || !phone) { S.err = 'Enter your name and phone number to continue.'; render(); return; }
+    var cust = S.wRole === 'customer';
+    return guard(async function () {
+      await S.db.doc(P()).set({ role: S.wRole, name: name, phone: phone, address: cust ? D('w-address').trim() : '', vehicle: S.veh, plate: cust ? '' : D('w-plate').trim(), calm: true, share: true, follows: [], created: Date.now() });
+      S.role = S.wRole; S.err = ''; ['w-name', 'w-phone', 'w-address', 'w-plate'].forEach(function (k) { delete S.drafts[k]; });
+    });
+  },
+  saveProfile: function () {
+    var rider = S.role === 'rider', patch = { name: D('p-name', S.profile.name).trim(), phone: D('p-phone', S.profile.phone).trim() };
+    if (!patch.name) { toast('Your name cannot be empty.'); return; }
+    if (rider) { patch.vehicle = D('p-veh', S.profile.vehicle || 'Motorbike'); patch.plate = D('p-plate', S.profile.plate).trim(); } else patch.address = D('p-address', S.profile.address).trim();
+    return guard(async function () { await S.db.doc(P()).update(patch); ['p-name', 'p-phone', 'p-plate', 'p-address', 'p-veh'].forEach(function (k) { delete S.drafts[k]; }); toast('Saved'); });
+  },
+  toggleCalm: function () { return S.db.doc(P()).update({ calm: S.profile.calm === false }).catch(fail); },
+  toggleShare: function () { S.lastPres = ''; return S.db.doc(P()).update({ share: S.profile.share === false }).catch(fail); },
+  switchRole: function () { S.role = S.role === 'rider' ? 'customer' : 'rider'; S.cur = null; S.screen = 'home'; S.lastPres = ''; resub(); render(); },
+  toggleOnline: function () { S.online = !S.online; resub(); render(); },
+  setForm: function (d) { S.form[d.k] = d.v; render(); },
+  toggleIns: function () { S.form.insured = !S.form.insured; render(); },
+  findShip: function () {
+    var id = D('t-id').trim().toUpperCase();
+    if (!id) { S.findMsg = 'Type a tracking ID first.'; render(); return; }
+    return guard(async function () {
+      var snap = await S.db.doc('shipments/' + id).get();
+      if (!snap.exists) { S.findMsg = 'No shipment found for ' + id + '.'; return; }
+      var follows = [id].concat((S.profile.follows || []).filter(function (x) { return x !== id; })).slice(0, 5);
+      await S.db.doc(P()).update({ follows: follows });
+      S.findMsg = ''; delete S.drafts['t-id']; S.cur = id; S.screen = 'track';
+    });
+  },
+  openShip: function (d) { var sh = ship(d.id); if (!sh) return; S.cur = d.id; S.screen = (sh.stage === 4 && !sh.rated && S.role === 'customer') ? 'rate' : 'track'; if (S.screen === 'rate') { S.rating = 0; S.tip = 0; } render(); },
+  createShip: function () {
+    var f = S.form, v = function (id, fb) { return D(id, fb).trim(); };
+    var item = v('n-item'), from = v('n-from', S.profile.address), to = v('n-to'), rn = v('n-rn'), rp = v('n-rp');
+    if (!item || !from || !to || !rn || !rp) { S.err = "Add the item, both addresses and the receiver's name and phone."; render(); return; }
+    return guard(async function () {
+      var id = 'FC-' + String(Math.floor(10000 + Math.random() * 90000)), pin = String(Math.floor(1000 + Math.random() * 9000)), q = quote(f);
+      var doc = { id: id, senderId: S.uid, senderName: S.profile.name, senderPhone: S.profile.phone, item: item, from: from, to: to, rName: rn, rPhone: rp, size: f.size, zone: f.zone, service: f.service, pay: f.pay, insured: f.insured, note: v('n-note'), q: q, pinHash: await hashPin(id, pin), stage: 0, rp: 0, rated: false, tip: 0, created: Date.now(), riderId: '' };
+      await S.db.doc('shipments/' + id).set(doc);
+      await S.db.doc('data/users/' + S.uid + '/pin_' + id).set({ pin: pin });
+      S.pins[id] = pin; S.cur = id; S.err = ''; S.screen = 'track'; S.mine[id] = doc;
+      ['n-item', 'n-from', 'n-to', 'n-rn', 'n-rp', 'n-note'].forEach(function (k) { delete S.drafts[k]; });
+      toast('Shipment confirmed. Finding a rider nearby.');
+    });
+  },
+  cancelShip: function () { var sh = curShip(); if (!sh || sh.stage > 1) return; return guard(async function () { await S.db.doc('shipments/' + sh.id).update({ stage: -1 }); S.cur = null; S.screen = 'home'; toast('Shipment cancelled. No charge.'); }); },
+  accept: function (d) {
+    return guard(async function () {
+      var ref = S.db.doc('shipments/' + d.id), lease = await ref.acquire({ holder: S.uid, ttlMs: 5000 });
+      if (!lease.acquired) { toast('Another rider is taking this request.'); return; }
+      var s = await ref.get(), x = s.data();
+      if (!x || x.stage !== 0) { toast('That request is no longer available.'); return; }
+      await ref.update({ stage: 1, riderId: S.uid, riderName: S.profile.name, riderPhone: S.profile.phone, riderVehicle: S.profile.vehicle || 'Motorbike', rp: 0, assignedAt: Date.now() });
+      S.rpShip = d.id; S.rp = 0; S.cur = d.id; S.screen = 'track';
+    });
+  },
+  picked: function () { var sh = curShip(); if (sh) return S.db.doc('shipments/' + sh.id).update({ stage: 2, pickedAt: Date.now(), rp: S.rp }).catch(fail); },
+  arrived: function () { var sh = curShip(); if (sh) return S.db.doc('shipments/' + sh.id).update({ stage: 3, arrivedAt: Date.now(), rp: 1 }).catch(fail); },
+  confirmPin: function () {
+    var sh = curShip(), pin = D('r-pin').trim(); if (!sh) return;
+    return guard(async function () {
+      if ((await hashPin(sh.id, pin)) !== sh.pinHash) { S.err = 'That PIN does not match. Ask the receiver again.'; return; }
+      S.err = ''; delete S.drafts['r-pin'];
+      await S.db.doc('shipments/' + sh.id).update({ stage: 4, deliveredAt: Date.now() });
+      S.cur = sh.id;
+    });
+  },
+  riderDone: function () { S.cur = null; S.rp = null; S.rpShip = null; S.screen = 'home'; render(); },
+  setRating: function (d) { S.rating = +d.n; render(); },
+  setTip: function (d) { S.tip = +d.v; render(); },
+  submitRating: function () {
+    var sh = curShip(); if (!sh) return;
+    return guard(async function () {
+      await S.db.doc('shipments/' + sh.id).update({ rated: true, rating: S.rating, tip: S.tip, comment: D('rt-c').trim() });
+      delete S.drafts['rt-c']; S.cur = null; S.screen = 'home'; toast('Thanks for the feedback!');
+    });
+  },
+  receipt: function (d) { S.receipt = d.id; render(); },
+  closeOv: function () { S.safety = false; S.receipt = null; render(); },
+  openSafety: function () { S.safety = true; render(); },
+  shareTrip: function () {
+    var sh = curShip(); if (!sh) return;
+    var txt = 'Track my FeelCalm delivery: ' + sh.id;
+    try { navigator.clipboard.writeText(txt).then(function () { toast('Tracking ID copied: ' + sh.id); }, function () { toast(txt); }); } catch (e) { toast(txt); }
+  },
+  sendChip: function (d) { return sendMsg(d.t); },
+  sendChat: function () { return sendMsg(D('c-msg')); }
+};
+async function sendMsg(text) {
+  var t = String(text || '').trim(), sh = curShip();
+  if (!t || !sh || sh.stage < 1) return;
+  delete S.drafts['c-msg'];
+  var inp = document.getElementById('c-msg'); if (inp) inp.value = '';
+  if (S.room) S.room.presence({ typing: null }).catch(function () {});
+  try { await S.db.collection('shipments/' + sh.id + '/messages').add({ by: S.uid, role: S.role, text: t.slice(0, 500), time: timeNow(), ts: Date.now() }); } catch (e) { fail(e); }
+}
+
+$app.addEventListener('click', function (e) {
+  var svg = e.target.closest && e.target.closest('svg.map');
+  if (svg && S.role === 'customer' && S.screen === 'track' && !e.target.closest('[data-act]')) {
+    var sh = curShip(); if (!sh || sh.stage >= 4 || !svg.getScreenCTM) return;
+    var pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY;
+    var m = pt.matrixTransform(svg.getScreenCTM().inverse());
+    S.myPos = { x: Math.max(10, Math.min(380, m.x)), y: Math.max(60, Math.min(510, m.y)) };
+    if (S.profile && S.profile.share === false) { toast('Turn on location to share your pin.'); return; }
+    S.lastPres = ''; syncPresence(); updateMap(); return;
+  }
+  var el = e.target.closest && e.target.closest('[data-act]'); if (!el || el.disabled) return;
+  var fn = A[el.getAttribute('data-act')]; if (!fn) return;
+  var d = {}; Array.prototype.forEach.call(el.attributes, function (a) { if (a.name.indexOf('data-') === 0) d[a.name.slice(5)] = a.value; });
+  fn(d);
+});
+$app.addEventListener('input', function (e) {
+  var t = e.target; if (!t.id) return;
+  S.drafts[t.id] = t.value;
+  if (t.id === 'c-msg' && S.room) {
+    S.room.presence({ typing: true }).catch(function () {});
+    clearTimeout(typeT); typeT = setTimeout(function () { S.room.presence({ typing: null }).catch(function () {}); }, 2500);
+  }
+});
+$app.addEventListener('keydown', function (e) {
+  if (e.key !== 'Enter') return;
+  var a = e.target.getAttribute && e.target.getAttribute('data-enter'); if (a && A[a]) { e.preventDefault(); A[a]({}); }
+});
+
+/* ---------------------------------------------------------------- boot */
+async function boot() {
+  render();
+  var c = window.claude;
+  if (!c || !c.use) { S.boot = 'nodb'; render(); return; }
+  var res = await Promise.all([c.use('db'), c.use('user'), c.use('room')]);
+  S.db = res[0]; S.user = res[1]; S.room = res[2];
+  if (!S.db) { S.boot = 'nodb'; render(); return; }
+  S.uid = S.user ? await S.user.id() : null;
+  if (!S.uid) { S.boot = 'nouser'; render(); return; }
+  S.canWrite = await S.user.can('data.write');
+  S.boot = 'ready';
+  if (S.room) S.room.onPeers(function (ch) { S.peers = ch.peers.slice(); updateMap(); });
+  profSub = S.db.doc(P()).onSnapshot(function (snap) {
+    var had = !!S.profile, first = S.profile === undefined;
+    S.profile = snap.exists ? snap.data() : false;
+    if (first && S.profile) { S.role = S.profile.role === 'rider' ? 'rider' : 'customer'; S.veh = S.profile.vehicle || 'Motorbike'; }
+    if (!!S.profile !== had) resub();
+    syncFollows(); scheduleRender();
+  }, fail);
+  render();
+}
+setInterval(function () { var sh = curShip(); if (sh && S.role === 'customer') ensurePin(sh); }, 1500);
+boot();
+})();
+</script>
