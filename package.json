@@ -1,0 +1,13 @@
+{
+  "name": "feelcalm",
+  "version": "1.0.0",
+  "description": "FeelCalm: smart delivery tracking with live GPS, real-time chat and fixed prices.",
+  "private": true,
+  "license": "UNLICENSED",
+  "engines": { "node": ">=22.5" },
+  "scripts": {
+    "start": "node --no-warnings server/index.js",
+    "dev": "node --no-warnings --watch server/index.js",
+    "test": "node --no-warnings --test test/e2e.test.js"
+  }
+}

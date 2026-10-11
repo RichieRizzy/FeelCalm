@@ -1,0 +1,25 @@
+# One-click deploy on Render: https://render.com/deploy?repo=https://github.com/RichieRizzy/FeelCalm
+# The disk keeps the SQLite database between deploys, so use a paid web service (disks are not on the free tier).
+services:
+  - type: web
+    name: feelcalm
+    runtime: docker
+    plan: starter
+    healthCheckPath: /healthz
+    disk:
+      name: feelcalm-data
+      mountPath: /data
+      sizeGB: 1
+    envVars:
+      - key: DATA_DIR
+        value: /data
+      - key: JWT_SECRET
+        generateValue: true
+      - key: PUBLIC_URL
+        sync: false          # e.g. https://feelcalm.onrender.com (needed for Paystack to return users to the app)
+      - key: PAYSTACK_SECRET_KEY
+        sync: false          # leave empty to stay in test mode
+      - key: PAYSTACK_PUBLIC_KEY
+        sync: false
+      - key: CONTACT_EMAIL
+        sync: false
